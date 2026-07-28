@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 沉默の金 <cmzj@cmzj.org>
+# SPDX-License-Identifier: MIT
+
+/.github/
+/.dart_tool/
+/doc/
+/test/
+/tool/
+/wasm/
+/ffigen.yaml
+/pubspec.lock
+/pubspec_overrides.yaml
+/.gitmodules
+/example/web/main.dart.js*
+/native/taglib_bridge/build/
+/third_party/taglib/.git
+/third_party/taglib/.github/
+/third_party/taglib/.astylerc
+/third_party/taglib/.editorconfig
+/third_party/taglib/.gitignore
+/third_party/taglib/.gitmodules
+/third_party/taglib/3rdparty/utfcpp/.git
+/third_party/taglib/3rdparty/utfcpp/.github/
+/third_party/taglib/3rdparty/utfcpp/.gitignore
+/third_party/taglib/**/.*
+/third_party/taglib/bindings/
+/third_party/taglib/doc/
+/third_party/taglib/examples/
+/third_party/taglib/tests/
+/third_party/taglib/3rdparty/utfcpp/bench/
+/third_party/taglib/3rdparty/utfcpp/tests/
+/third_party/taglib/*.md
+/third_party/taglib/3rdparty/utfcpp/*.md

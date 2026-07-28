@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 沉默の金 <cmzj@cmzj.org>
+# SPDX-License-Identifier: MIT
+
+native/taglib_bridge/build/
+.dart_tool/
+pubspec.lock
+pubspec_overrides.yaml
+wasm/build/
+test/web_runtime/
+test/assets/
+test/flutter_web_asset_app/build/
+example/web/main.dart.js
+example/web/main.dart.js.deps
+example/web/main.dart.js.map

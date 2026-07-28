@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 沉默の金 <cmzj@cmzj.org>
+# SPDX-License-Identifier: MIT
+
+name: dart_taglib
+description: Cross-platform Dart bindings for TagLib with native FFI and WebAssembly backends.
+version: 0.1.0-dev.1
+homepage: https://github.com/chenmozhijin/dart_taglib
+repository: https://github.com/chenmozhijin/dart_taglib
+issue_tracker: https://github.com/chenmozhijin/dart_taglib/issues
+
+environment:
+  sdk: ">=3.11.0 <4.0.0"
+
+dependencies:
+  args: ^2.7.0
+  charset_normalizer_dart: ^0.1.0
+  code_assets: ^1.2.1
+  crypto: ^3.0.7
+  ffi: ^2.2.0
+  hooks: ^2.0.0
+  native_toolchain_c: ^0.19.2
+  path: ^1.9.1
+  web: ^1.1.1
+
+dev_dependencies:
+  ffigen: ^20.1.1
+  lints: ^6.1.0
+  test: ^1.30.0
+
+flutter:
+  assets:
+    - path: web_runtime/taglib_bridge.js
+      platforms: [web]
+    - path: web_runtime/taglib_bridge.wasm
+      platforms: [web]
+    - path: web_runtime/taglib_bridge_web.js
+      platforms: [web]

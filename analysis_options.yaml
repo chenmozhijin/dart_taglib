@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 沉默の金 <cmzj@cmzj.org>
+# SPDX-License-Identifier: MIT
+
+include: package:lints/recommended.yaml
+
+analyzer:
+  exclude:
+    - test/flutter_web_asset_app/**
+
+linter:
+  rules:
+    public_member_api_docs: true

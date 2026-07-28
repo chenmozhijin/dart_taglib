@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 沉默の金 <cmzj@cmzj.org>
+# SPDX-License-Identifier: MIT
+
+name: TaglibBridgeGenerated
+description: Generated bindings for taglib_bridge.h.
+output: lib/src/ffi_native/taglib_bridge_generated.dart
+preamble: |
+  // SPDX-FileCopyrightText: 2026 沉默の金 <cmzj@cmzj.org>
+  // SPDX-License-Identifier: MIT
+headers:
+  entry-points:
+    - native/taglib_bridge/include/taglib_bridge.h
+compiler-opts:
+  - -Inative/taglib_bridge/include

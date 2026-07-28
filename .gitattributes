@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: 2026 沉默の金 <cmzj@cmzj.org>
+# SPDX-License-Identifier: MIT
+
+/.gitmodules text eol=lf
+/web_runtime/*.js text eol=lf
+/web_runtime/manifest.json text eol=lf
+/web_runtime/*.wasm binary
+/wasm/taglib_bridge_web.js text eol=lf
