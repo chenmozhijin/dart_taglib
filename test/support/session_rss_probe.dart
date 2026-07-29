@@ -2,11 +2,14 @@
 // SPDX-License-Identifier: MIT
 
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dart_taglib/dart_taglib.dart';
+import 'package:vm_service/vm_service.dart';
+import 'package:vm_service/vm_service_io.dart';
 
 const int _warmupIterations = 128;
 const int _batchCount = 8;
@@ -48,6 +51,31 @@ int? _trimLinuxAllocator() {
   }
 }
 
+Future<VmService> _connectVmService() async {
+  final serverUri = (await developer.Service.getInfo()).serverUri;
+  if (serverUri == null) {
+    throw StateError('The RSS probe requires a VM service connection.');
+  }
+  final webSocketUri = serverUri.replace(
+    scheme: serverUri.scheme == 'https' ? 'wss' : 'ws',
+    path: '${serverUri.path}ws',
+  );
+  return vmServiceConnectUri(webSocketUri.toString());
+}
+
+Future<void> _collectGarbage(VmService service) async {
+  final vm = await service.getVM();
+  final isolate = vm.isolates?.firstWhere(
+    (candidate) => candidate.name == 'main',
+    orElse: () => throw StateError('Unable to find the RSS probe isolate.'),
+  );
+  final isolateId = isolate?.id;
+  if (isolateId == null) {
+    throw StateError('The RSS probe isolate has no service ID.');
+  }
+  await service.getAllocationProfile(isolateId, gc: true);
+}
+
 void _runBatch(TaglibApi api, Uint8List bytes, int iterations) {
   for (var index = 0; index < iterations; index++) {
     final session = api.openSession(bytes, nameHint: 'lossless.wma');
@@ -64,7 +92,7 @@ void _runBatch(TaglibApi api, Uint8List bytes, int iterations) {
   }
 }
 
-void main() {
+Future<void> main() async {
   final fixture = File('test/fixtures/taglib_data/lossless.wma');
   if (!fixture.existsSync()) {
     stderr.writeln('Missing RSS fixture: ${fixture.path}');
@@ -74,15 +102,19 @@ void main() {
 
   final bytes = fixture.readAsBytesSync();
   final api = TaglibApi();
+  final vmService = await _connectVmService();
 
   // Warm up JIT, dynamic-library loading, and allocator growth so one-time
   // startup costs are not mistaken for a leak.
   _runBatch(api, bytes, _warmupIterations);
+  await _collectGarbage(vmService);
   final samples = <int>[ProcessInfo.currentRss];
   for (var batch = 0; batch < _batchCount; batch++) {
     _runBatch(api, bytes, _iterationsPerBatch);
+    await _collectGarbage(vmService);
     samples.add(ProcessInfo.currentRss);
   }
+  await vmService.dispose();
 
   final totalGrowth = samples.last - samples.first;
   final lateSamples = samples.skip(samples.length ~/ 2).toList();
@@ -106,6 +138,7 @@ void main() {
     'totalGrowthBytes': totalGrowth,
     'lateSpanBytes': lateSpan,
     'limitBytes': _maximumRssGrowthBytes,
+    'forcedGcBeforeSamples': true,
     'allocatorTrimResult': ?trimResult,
     'rssBeforeAllocatorTrimBytes': rssBeforeTrim,
     'rssAfterAllocatorTrimBytes': rssAfterTrim,

@@ -36,6 +36,8 @@ void main() {
         Platform.resolvedExecutable,
         const <String>[
           '--disable-dart-dev',
+          '--enable-vm-service=0',
+          '--disable-service-auth-codes',
           '--packages=.dart_tool/package_config.json',
           'test/support/session_rss_probe.dart',
         ],
