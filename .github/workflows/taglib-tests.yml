@@ -27,7 +27,7 @@ jobs:
         shell: pwsh
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           path: dart_taglib
           submodules: recursive
@@ -57,7 +57,7 @@ jobs:
         shell: pwsh
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           path: dart_taglib
           submodules: recursive
@@ -82,7 +82,7 @@ jobs:
         shell: pwsh
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           path: dart_taglib
           submodules: recursive
@@ -91,7 +91,7 @@ jobs:
         uses: dart-lang/setup-dart@v1
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Install Android NDK
         shell: bash
@@ -116,7 +116,7 @@ jobs:
         shell: pwsh
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           path: dart_taglib
           submodules: recursive
@@ -138,7 +138,7 @@ jobs:
         shell: pwsh
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           path: dart_taglib
           submodules: recursive
@@ -147,11 +147,11 @@ jobs:
         uses: dart-lang/setup-dart@v1
 
       - name: Setup Emscripten SDK
-        uses: mymindstorm/setup-emsdk@v14
+        uses: emscripten-core/setup-emsdk@v16
 
       - name: Setup Chrome
         id: chrome
-        uses: browser-actions/setup-chrome@v1
+        uses: browser-actions/setup-chrome@v2
 
       - name: Build wasm bridge
         working-directory: dart_taglib
@@ -189,7 +189,7 @@ jobs:
         shell: pwsh
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           path: dart_taglib
           submodules: recursive
@@ -236,7 +236,7 @@ jobs:
         shell: pwsh
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           path: dart_taglib
           submodules: recursive
@@ -286,7 +286,7 @@ jobs:
         shell: pwsh
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           path: dart_taglib
           submodules: recursive
