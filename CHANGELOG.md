@@ -1,6 +1,6 @@
-## 0.1.0-dev.1
+## 0.1.0
 
-- Initial preview with native FFI and browser WebAssembly backends.
+- Initial stable release with native FFI and browser WebAssembly backends.
 - Added Windows, Linux, macOS, Android, iOS, and Web support.
 - Added reading and writing for basic tags, property maps, pictures, plain
   lyrics, and synchronized lyrics.

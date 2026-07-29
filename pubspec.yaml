@@ -3,7 +3,7 @@
 
 name: dart_taglib
 description: Cross-platform Dart bindings for TagLib with native FFI and WebAssembly backends.
-version: 0.1.0-dev.1
+version: 0.1.0
 homepage: https://github.com/chenmozhijin/dart_taglib
 repository: https://github.com/chenmozhijin/dart_taglib
 issue_tracker: https://github.com/chenmozhijin/dart_taglib/issues
