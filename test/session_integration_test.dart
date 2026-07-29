@@ -189,7 +189,8 @@ void main() {
   late _NamedFixture nonMp3Fixture;
 
   setUpAll(() {
-    // 集成测试必须覆盖发布包的 Native Assets 默认加载路径。
+    // The integration test must cover the published package's default Native
+    // Assets loading path.
     api = TaglibApi();
     sampleMp3Bytes = _readFixtureBytes('test/fixtures/sample.mp3');
 

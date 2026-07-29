@@ -33,7 +33,8 @@ function Get-GitCommit([string]$WorkingDirectory, [string]$Path = "") {
   if ($Path -eq "") {
     return Invoke-Git @("-C", $WorkingDirectory, "rev-parse", "HEAD")
   }
-  # 使用 index 中的 gitlink，避免转换尚未提交时误读旧 HEAD 的扁平目录。
+  # Read the gitlink from the index so an uncommitted conversion cannot make us
+  # inspect the old flattened directory by accident.
   return Invoke-Git @("-C", $WorkingDirectory, "rev-parse", ":$Path")
 }
 
@@ -80,8 +81,8 @@ function Assert-TagLibSubmodules {
     throw "utfcpp commit mismatch: expected=$UtfCppCommit actual=$utfcppCommit"
   }
 
-  # 直接比较父、TagLib、utfcpp 三层固定提交；这样不依赖 Git for Windows 的
-  # git-submodule shell helper，在最小化 Windows 环境中也能执行同样的门禁。
+  # Compare the fixed commits at the parent, TagLib, and utfcpp levels directly.
+  # This avoids Git for Windows' git-submodule shell helper on minimal systems.
 
   foreach ($required in @(
       (Join-Path $vendorRoot "CMakeLists.txt"),
@@ -101,7 +102,8 @@ function Assert-TagLibSubmodules {
 }
 
 if (-not $Check) {
-  # 更新命令只初始化父仓库已经记录的 commit，不跟随远端分支漂移。
+  # Update initializes only commits recorded by the parent repository; it does
+  # not follow a moving upstream branch.
   Invoke-Git @("-C", $packageRoot, "submodule", "update", "--init", "--recursive") | Out-Null
 }
 

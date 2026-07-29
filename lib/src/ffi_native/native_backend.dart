@@ -47,8 +47,9 @@ final class NativeTaglibBackend
         libraryPath: libraryPath,
         dynamicLibrary: dynamicLibrary,
       ) {
-    // 同一个 backend 的会话共用 finalizer，避免批处理时为每个会话额外创建
-    // NativeFinalizer 对象；会话仍各自注册独立的 native 指针和解绑令牌。
+    // Sessions on one backend share a finalizer, avoiding one NativeFinalizer
+    // object per batch item. Each session still registers its own pointer and
+    // detach token.
     _sessionFinalizer = NativeFinalizer(_ffi.finalizeSession.cast());
   }
 
@@ -226,7 +227,8 @@ final class _NativeTaglibSession
         TaglibSessionCapabilityProbeBackend,
         Finalizable {
   _NativeTaglibSession(this._ffi, this._finalizer, this._session) {
-    // 显式 close 是确定释放路径；finalizer 只兜底调用者遗漏关闭的情况。
+    // Explicit close is the deterministic release path; the finalizer only
+    // covers callers that forget to close the session.
     _finalizer.attach(this, _session.cast<Void>(), detach: this);
   }
 
@@ -285,8 +287,8 @@ final class _NativeTaglibSession
     }
 
     try {
-      // writeBasicTags 传入的是 Dart 分配的输入结构，不能交给 native 的
-      // tlb_free_basic_tags() 释放；该释放函数只属于 readBasicTags 输出结构。
+      // writeBasicTags receives a Dart-owned input structure. Do not pass it to
+      // tlb_free_basic_tags(), which is reserved for readBasicTags output.
       nativeTags.ref.title = toNative(tags.title);
       nativeTags.ref.artist = toNative(tags.artist);
       nativeTags.ref.album = toNative(tags.album);
@@ -878,7 +880,7 @@ final class _NativeTaglibSession
       );
       return bytes;
     } finally {
-      // Dart 堆复制失败时也必须释放 native 输出，避免批处理任务累积泄漏。
+      // Native output must be freed even when copying to the Dart heap fails.
       if (outBytesPtr.value != nullptr) {
         _ffi.freeBytes(outBytesPtr.value);
       }

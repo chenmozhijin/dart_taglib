@@ -40,7 +40,7 @@ if ($LASTEXITCODE -ne 0) {
   throw "WASM CMake build failed with exit code $LASTEXITCODE."
 }
 
-# Emscripten 每次都会重写胶水代码，因此文件头必须由构建流程补入。
+# Emscripten rewrites the glue code, so the build must restore the file header.
 $generatedJs = Join-Path $BuildDir "taglib_bridge.js"
 if (-not (Test-Path $generatedJs)) {
   throw "Generated JavaScript runtime not found: $generatedJs"
@@ -56,8 +56,9 @@ if (-not $generatedJsContent.StartsWith($spdxHeader, [System.StringComparison]::
   $generatedJsContent = $spdxHeader + $generatedJsContent
 }
 
-# Emscripten 的胶水代码可能包含行尾空格。发布资产在每次重建后统一规范化，
-# 避免生成器版本或平台换行差异反复污染 Git，同时不改变 JavaScript 语义。
+# Emscripten glue code may contain trailing spaces. Normalize release assets
+# after every rebuild to avoid generator or line-ending drift without changing
+# JavaScript semantics.
 $generatedJsContent = [regex]::Replace(
   $generatedJsContent,
   "[ `t]+(?=`r?$)",

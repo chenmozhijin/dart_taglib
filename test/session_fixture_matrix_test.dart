@@ -37,7 +37,8 @@ void main() {
   late FixtureMatrixRunner runner;
 
   setUpAll(() {
-    // fixture 矩阵与真实使用者一样，只通过 Native Assets 获取桥接库。
+    // Like real consumers, the fixture matrix loads the bridge only through
+    // Native Assets.
     api = TaglibApi();
     runner = FixtureMatrixRunner(api: api, loadBytes: _loadFixtureBytes);
   });

@@ -16,7 +16,8 @@ Future<void> runTaglibBridgeBuildHook(
 ) async {
   final plan = await createTaglibBridgeBuildPlan(input);
 
-  // C++ 与 vendor 不属于 hook 的 Dart 依赖图，必须显式登记以防源码更新后复用旧二进制。
+  // C++ and vendor files are outside the hook's Dart dependency graph, so
+  // register them explicitly to prevent stale binary reuse after source changes.
   output.dependencies.add(plan.nativeBridgeDirectory.uri);
   output.dependencies.add(plan.repoRoot.uri.resolve('third_party/taglib/'));
 

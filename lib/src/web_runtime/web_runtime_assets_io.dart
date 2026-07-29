@@ -240,7 +240,8 @@ Future<void> _copyVerifiedFile({
     try {
       await temporary.rename(destination.path);
     } on FileSystemException {
-      // Windows 可能拒绝覆盖现有文件；先保留旧文件，失败时可完整恢复。
+      // Windows may reject replacement of an existing file. Keep the old file
+      // so a failed update can be restored completely.
       if (await destination.exists()) {
         backup = File('${destination.path}.dart_taglib_$nonce.bak');
         await destination.rename(backup.path);

@@ -5,7 +5,7 @@
   "config": "Release",
   "command": "tool/bootstrap_web.ps1 -Target emscripten -Config Release",
   "artifacts": {
-    "taglib_bridge_web.js": "672297bbbef4268ec091151516e016f4267e4edf7d5ac82818d4c3dab53140c0",
+    "taglib_bridge_web.js": "9635e67274065a56af5d34952119ac6e23197d1ba412782bfcb662c66ccd3eec",
     "taglib_bridge.js": "668889677ad7cde461854507d5f47afa340bed5251ccd8020222efbb3801c620",
     "taglib_bridge.wasm": "4e68ab182e3de0d2a2489fc004229275ba06ac6ed2c7d1eef53370618693973d"
   }

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -12,15 +13,52 @@ const int _batchCount = 8;
 const int _iterationsPerBatch = 256;
 const int _maximumRssGrowthBytes = 64 * 1024 * 1024;
 
+typedef _MallocTrimNative = Int32 Function(UintPtr);
+typedef _MallocTrimDart = int Function(int);
+
+Map<String, int>? _readLinuxSmapsRollup() {
+  if (!Platform.isLinux) {
+    return null;
+  }
+  final file = File('/proc/self/smaps_rollup');
+  if (!file.existsSync()) {
+    return null;
+  }
+  final values = <String, int>{};
+  for (final line in file.readAsLinesSync()) {
+    final match = RegExp(r'^([A-Za-z_]+):\s+(\d+)\s+kB$').firstMatch(line);
+    if (match == null) {
+      continue;
+    }
+    values[match.group(1)!] = int.parse(match.group(2)!) * 1024;
+  }
+  return values;
+}
+
+int? _trimLinuxAllocator() {
+  if (!Platform.isLinux) {
+    return null;
+  }
+  try {
+    final mallocTrim = DynamicLibrary.process()
+        .lookupFunction<_MallocTrimNative, _MallocTrimDart>('malloc_trim');
+    return mallocTrim(0);
+  } on ArgumentError {
+    return null;
+  }
+}
+
 void _runBatch(TaglibApi api, Uint8List bytes, int iterations) {
   for (var index = 0; index < iterations; index++) {
     final session = api.openSession(bytes, nameHint: 'lossless.wma');
     try {
-      // 读取两个不同输出，覆盖 TagLib 对象访问和 FFI 输出结构的释放路径。
+      // Read two different outputs to cover TagLib object access and FFI output
+      // release paths.
       session.readBasicTags();
       session.readAudioProperties();
     } finally {
-      // 压力证据只依赖同步 close，不依赖无法确定调度时机的 GC finalizer。
+      // The pressure evidence relies on synchronous close, not on the
+      // nondeterministic scheduling of the GC finalizer.
       session.close();
     }
   }
@@ -37,7 +75,8 @@ void main() {
   final bytes = fixture.readAsBytesSync();
   final api = TaglibApi();
 
-  // 先触发 JIT、动态库加载和分配器首次扩容，避免把一次性启动成本误判为泄漏。
+  // Warm up JIT, dynamic-library loading, and allocator growth so one-time
+  // startup costs are not mistaken for a leak.
   _runBatch(api, bytes, _warmupIterations);
   final samples = <int>[ProcessInfo.currentRss];
   for (var batch = 0; batch < _batchCount; batch++) {
@@ -54,6 +93,11 @@ void main() {
     (left, right) => left > right ? left : right,
   );
   final lateSpan = lateMaximum - lateMinimum;
+  final smapsBeforeTrim = _readLinuxSmapsRollup();
+  final rssBeforeTrim = ProcessInfo.currentRss;
+  final trimResult = _trimLinuxAllocator();
+  final rssAfterTrim = ProcessInfo.currentRss;
+  final smapsAfterTrim = _readLinuxSmapsRollup();
   final evidence = <String, Object>{
     'fixtureBytes': bytes.length,
     'warmupIterations': _warmupIterations,
@@ -62,6 +106,11 @@ void main() {
     'totalGrowthBytes': totalGrowth,
     'lateSpanBytes': lateSpan,
     'limitBytes': _maximumRssGrowthBytes,
+    'allocatorTrimResult': ?trimResult,
+    'rssBeforeAllocatorTrimBytes': rssBeforeTrim,
+    'rssAfterAllocatorTrimBytes': rssAfterTrim,
+    'smapsBeforeAllocatorTrimBytes': ?smapsBeforeTrim,
+    'smapsAfterAllocatorTrimBytes': ?smapsAfterTrim,
   };
   stdout.writeln('DART_TAGLIB_RSS ${jsonEncode(evidence)}');
 

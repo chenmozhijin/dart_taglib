@@ -47,7 +47,7 @@ int? _readStatusFromBridgeError(Object error) {
     if (value is num) return value.toInt();
     if (value is String) return int.tryParse(value);
   } on Object {
-    // 非 bridge 错误保留原始堆栈向上抛出。
+    // Preserve the original stack for errors that do not come from the bridge.
   }
   return null;
 }
@@ -61,7 +61,7 @@ String _readMessageFromBridgeError(Object error) {
       return value;
     }
   } on Object {
-    // 回退到 Dart 默认字符串。
+    // Fall back to Dart's default string conversion.
   }
   return error.toString();
 }
@@ -92,7 +92,8 @@ JSAny? _toJsAny(Object? value) {
       return jsValue;
     }
   } on Object {
-    // 普通 Dart 对象继续走 jsify，避免 dart2js 下把 Dart Map/List 误传给 JS。
+    // Keep ordinary Dart objects on jsify so dart2js does not pass Map/List
+    // instances directly to JavaScript.
   }
   return value.jsify();
 }
@@ -506,7 +507,9 @@ final class _WasmTaglibSession
     List<PictureFileItem> pictures, {
     required bool clearExisting,
   }) {
-    throw UnsupportedError('Web 后端不能从本地文件路径写入封面');
+    throw UnsupportedError(
+      'The Web backend cannot write cover art from local file paths.',
+    );
   }
 
   @override

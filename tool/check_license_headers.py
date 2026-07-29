@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 沉默の金 <cmzj@cmzj.org>
 # SPDX-License-Identifier: MIT
 
-"""校验项目源码、配置、生成资产与用户文档的 SPDX 边界。"""
+"""Check SPDX boundaries for source, configuration, generated assets, and docs."""
 
 from __future__ import annotations
 
@@ -65,7 +65,7 @@ def _check_header(path: str, lines: list[str]) -> str | None:
         return None
     start = 1 if lines and lines[0].startswith("#!") else 0
     if tuple(lines[start : start + 2]) != expected:
-        return f"{path}: 缺少或错误的 MIT SPDX 文件头"
+        return f"{path}: missing or invalid MIT SPDX header"
     return None
 
 
@@ -91,7 +91,7 @@ def main() -> int:
         }:
             text = absolute.read_text(encoding="utf-8")
             if "SPDX-FileCopyrightText:" in text:
-                errors.append(f"{path}: JSON、许可证或用户文档不得嵌入 SPDX 文件头")
+                errors.append(f"{path}: JSON, licenses, and user docs must not embed SPDX headers")
 
     if errors:
         print("\n".join(errors))

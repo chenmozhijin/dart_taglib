@@ -166,6 +166,14 @@ jobs:
         env:
           CHROME_EXECUTABLE: ${{ steps.chrome.outputs.chrome-path }}
         run: |
+          # Ubuntu runners may disable Chromium's unprivileged user namespace.
+          # Use a temporary wrapper only for CI; the published runtime is unchanged.
+          $chromePath = '${{ steps.chrome.outputs.chrome-path }}'
+          $wrapperPath = Join-Path $env:RUNNER_TEMP 'chrome-no-sandbox.sh'
+          $wrapper = "#!/usr/bin/env bash`nexec `"$chromePath`" --no-sandbox `"`$@`"`n"
+          [System.IO.File]::WriteAllText($wrapperPath, $wrapper, [System.Text.UTF8Encoding]::new($false))
+          bash -c "chmod +x '$wrapperPath'"
+          $env:CHROME_EXECUTABLE = $wrapperPath
           dart pub get
           dart test -p chrome test/browser_wasm_integration_test.dart test/browser_fixture_matrix_test.dart test/browser_wasm_loader_failure_test.dart
 
@@ -186,8 +194,11 @@ jobs:
           path: dart_taglib
           submodules: recursive
 
-      - name: Setup Dart
-        uses: dart-lang/setup-dart@v1
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.0
 
       - name: Verify license headers
         working-directory: dart_taglib
@@ -207,7 +218,11 @@ jobs:
         working-directory: dart_taglib
         run: |
           dart pub global activate pana 0.23.14
-          dart pub global run pana . --exit-code-threshold=160
+          $output = @(& dart pub global run pana . --flutter-sdk $env:FLUTTER_ROOT --exit-code-threshold=0 2>&1 | ForEach-Object { $_.ToString() })
+          $output | ForEach-Object { Write-Host $_ }
+          if (-not ($output -match 'Points:\s*160/160\.')) {
+            throw 'Pana did not report the required 160/160 score.'
+          }
 
       - name: Verify Pub archive
         working-directory: dart_taglib
@@ -247,3 +262,103 @@ jobs:
       - name: Verify bundled Web runtime hashes
         working-directory: dart_taglib
         run: dart run dart_taglib:install_web_runtime --check --output test/flutter_web_asset_app/build/web/assets/packages/dart_taglib/web_runtime
+
+  flutter-native-consumer:
+    name: Flutter native consumer (${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows
+          - os: ubuntu-latest
+            platform: linux
+          - os: macos-latest
+            platform: macos
+          - os: ubuntu-latest
+            platform: android
+          - os: macos-latest
+            platform: ios
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          path: dart_taglib
+          submodules: recursive
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.0
+          cache: true
+
+      - name: Setup Android SDK
+        if: matrix.platform == 'android'
+        uses: android-actions/setup-android@v4
+
+      - name: Install Android NDK
+        if: matrix.platform == 'android'
+        shell: bash
+        run: |
+          ndk_version='27.0.12077973'
+          sdkmanager "ndk;$ndk_version"
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/$ndk_version" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_LATEST_HOME=$ANDROID_SDK_ROOT/ndk/$ndk_version" >> "$GITHUB_ENV"
+
+      - name: Create Flutter consumer project
+        working-directory: dart_taglib/test/flutter_web_asset_app
+        run: flutter create --platforms=${{ matrix.platform }} --project-name=dart_taglib_consumer .
+
+      - name: Resolve and analyze consumer
+        working-directory: dart_taglib/test/flutter_web_asset_app
+        run: |
+          flutter pub get
+          flutter analyze
+
+      - name: Build Windows consumer
+        if: matrix.platform == 'windows'
+        working-directory: dart_taglib/test/flutter_web_asset_app
+        run: flutter build windows --debug
+
+      - name: Build Linux consumer
+        if: matrix.platform == 'linux'
+        working-directory: dart_taglib/test/flutter_web_asset_app
+        run: flutter build linux --debug
+
+      - name: Build macOS consumer
+        if: matrix.platform == 'macos'
+        working-directory: dart_taglib/test/flutter_web_asset_app
+        run: flutter build macos --debug
+
+      - name: Build Android consumer
+        if: matrix.platform == 'android'
+        working-directory: dart_taglib/test/flutter_web_asset_app
+        run: flutter build apk --debug
+
+      - name: Verify Android native assets
+        if: matrix.platform == 'android'
+        working-directory: dart_taglib/test/flutter_web_asset_app
+        run: |
+          $apk = Get-ChildItem build/app/outputs/flutter-apk/*.apk | Select-Object -First 1
+          if ($null -eq $apk) { throw 'Flutter did not produce an APK.' }
+          $entries = @(& jar tf $apk.FullName)
+          if (-not ($entries -match 'lib/arm64-v8a/libtaglib_bridge.so')) {
+            throw 'APK does not contain the arm64 taglib_bridge asset.'
+          }
+
+      - name: Build iOS simulator consumer
+        if: matrix.platform == 'ios'
+        working-directory: dart_taglib/test/flutter_web_asset_app
+        run: flutter build ios --no-codesign --simulator
+
+      - name: Build iOS device consumer
+        if: matrix.platform == 'ios'
+        working-directory: dart_taglib/test/flutter_web_asset_app
+        run: flutter build ios --no-codesign

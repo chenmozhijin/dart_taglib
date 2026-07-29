@@ -4,9 +4,10 @@
 $ErrorActionPreference = "Stop"
 $PSNativeCommandUseErrorActionPreference = $false
 
-# Pub 会递归读取 submodule 自带的 .gitignore，并把其中已跟踪的隐藏维护文件
-# 报为 warning。归档已经由根 .pubignore 排除这些文件，因此这里只允许固定清单，
-# 任何新增 warning、路径变化或其他发布错误仍会使门禁失败。
+# Pub recursively reads submodule .gitignore files and warns about tracked
+# maintenance files they hide. The root .pubignore excludes them from the
+# archive, so only this fixed list is allowed; any new warning or publish error
+# still fails the gate.
 $expectedIgnoredFiles = @(
   "third_party/taglib/.astylerc"
   "third_party/taglib/.editorconfig"

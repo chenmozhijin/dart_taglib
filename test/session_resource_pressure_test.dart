@@ -28,9 +28,10 @@ void main() {
         reason: 'Native Assets did not bundle ${library.path}.',
       );
 
-      // 独立进程隔离其他测试的 JIT 与堆增长，使 RSS 只反映本压力场景。
-      // 直接执行脚本并加载父测试已构建的动态库，避免 dart run 再次触发
-      // build hook；Windows 不允许替换父进程仍在使用的 DLL。
+      // Isolate JIT and heap growth from other tests so RSS reflects only this
+      // pressure scenario. Execute the probe directly with the library built
+      // by the parent test to avoid rerunning the build hook; Windows cannot
+      // replace a DLL that the parent process still uses.
       final result = await Process.run(
         Platform.resolvedExecutable,
         const <String>[

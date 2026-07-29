@@ -22,8 +22,8 @@ if(NOT TARGET tag)
 endif()
 
 if(EMSCRIPTEN)
-  # WebAssembly 最终模块会链接本目标；使用静态库可确保导出函数进入最终链接，
-  # 避免 Emscripten 把它当作独立动态模块而报告导出符号未定义。
+  # The final WebAssembly module links this target. A static library keeps the
+  # bridge symbols in the final link instead of treating it as a separate module.
   set(TAGLIB_BRIDGE_LIBRARY_TYPE STATIC)
 else()
   set(TAGLIB_BRIDGE_LIBRARY_TYPE SHARED)

@@ -648,7 +648,8 @@ tlb_status_t tlb_session_open_from_fd(int32_t file_descriptor,
     if(!session->file_stream->isOpen()) {
       return TLB_STATUS_IO_ERROR;
     }
-    // FileStream 仅在成功打开后接管 fd，之前的异常由 guard 负责关闭。
+    // FileStream takes ownership only after opening succeeds; the guard closes
+    // the descriptor if an earlier step fails.
     fd_guard.release();
 
     session->file_ref = std::make_unique<TagLib::FileRef>(
@@ -679,7 +680,8 @@ tlb_status_t tlb_session_close(tlb_session_t **session)
 
 void tlb_session_finalize(tlb_session_t *session)
 {
-  // GC 兜底不能向 Dart 或 JavaScript 抛出错误，只负责释放仍存活的会话。
+  // GC cleanup must not throw into Dart or JavaScript; it only releases the
+  // session that is still alive.
   delete session;
 }
 

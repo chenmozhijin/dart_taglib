@@ -9,7 +9,8 @@
 
   const sessionFinalizer = typeof FinalizationRegistry === "function"
     ? new FinalizationRegistry((state) => {
-        // 页面仍存活时兜底释放遗忘 close() 的 WASM 会话。
+        // Release a WASM session that was not explicitly closed while the page
+        // remains alive.
         state.finalizeSession(state.session);
       })
     : null;
@@ -526,7 +527,8 @@
             ? readBytes(module, bytesPtr, length)
             : new Uint8Array(0);
         } finally {
-          // JS 复制失败时也释放 WASM 输出，避免大文件导出逐次泄漏。
+          // Free WASM output when the JavaScript copy fails to avoid repeated
+          // large-export leaks.
           if (bytesPtr) {
             fns.freeBytes(bytesPtr);
           }
