@@ -316,6 +316,10 @@ jobs:
         working-directory: dart_taglib/test/flutter_web_asset_app
         run: flutter create --platforms=${{ matrix.platform }} --project-name=dart_taglib_consumer .
 
+      - name: Remove generated template test
+        working-directory: dart_taglib/test/flutter_web_asset_app
+        run: Remove-Item test/widget_test.dart -Force -ErrorAction SilentlyContinue
+
       - name: Resolve and analyze consumer
         working-directory: dart_taglib/test/flutter_web_asset_app
         run: |
