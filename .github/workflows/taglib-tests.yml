@@ -228,6 +228,57 @@ jobs:
         working-directory: dart_taglib
         run: ./tool/verify_pub_archive.ps1
 
+  pub-archive-consumer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          path: dart_taglib
+          submodules: recursive
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.0
+          cache: true
+
+      - name: Install Linux desktop dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+
+      - name: Stage Pub package files
+        working-directory: dart_taglib
+        run: python tool/stage_pub_package.py --output .dart_tool/pub_archive/package
+
+      - name: Create archive consumer
+        working-directory: dart_taglib
+        run: |
+          $consumer = (Resolve-Path .dart_tool/pub_archive).Path + '/consumer'
+          flutter create --platforms=linux,web --project-name=dart_taglib_archive_consumer $consumer
+          Remove-Item "$consumer/test/widget_test.dart" -Force -ErrorAction SilentlyContinue
+          Copy-Item test/flutter_web_asset_app/lib/main.dart "$consumer/lib/main.dart" -Force
+          Push-Location $consumer
+          dart pub add dart_taglib --path=../package
+          flutter pub get
+          flutter analyze
+          Pop-Location
+
+      - name: Build Linux archive consumer
+        working-directory: dart_taglib/.dart_tool/pub_archive/consumer
+        run: flutter build linux --debug
+
+      - name: Build Web archive consumer
+        working-directory: dart_taglib/.dart_tool/pub_archive/consumer
+        run: flutter build web --release
+
   flutter-web-assets:
     runs-on: ubuntu-latest
     timeout-minutes: 30
