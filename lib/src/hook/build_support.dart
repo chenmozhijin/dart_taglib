@@ -1,6 +1,11 @@
 // SPDX-FileCopyrightText: 2026 沉默の金 <cmzj@cmzj.org>
 // SPDX-License-Identifier: MIT
 
+// This library is an internal build-hook implementation, not a user-facing
+// package API. Its named helpers remain public only so the hook entry point and
+// focused tests can import them without duplicating build logic.
+// ignore_for_file: public_member_api_docs
+
 import 'dart:io';
 
 import 'package:code_assets/code_assets.dart';

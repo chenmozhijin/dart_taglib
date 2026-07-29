@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:code_assets/code_assets.dart';
 import 'package:test/test.dart';
 
-import '../hook/build_support.dart' as build_support;
+import 'package:dart_taglib/src/hook/build_support.dart' as build_support;
 
 void main() {
   group('build support helpers', () {

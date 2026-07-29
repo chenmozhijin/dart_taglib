@@ -7,7 +7,7 @@ import 'package:code_assets/code_assets.dart';
 import 'package:dart_taglib/src/web_runtime/web_runtime_assets_io.dart';
 import 'package:hooks/hooks.dart';
 
-import 'build_support.dart';
+import 'package:dart_taglib/src/hook/build_support.dart';
 
 Future<void> main(List<String> args) async {
   await build(args, (input, output) async {
