@@ -52,7 +52,7 @@ dart run dart_taglib:install_web_runtime
 ```
 
 默认目标目录是 `web/assets/packages/dart_taglib/web_runtime`，与
-`initializeTaglibWasmBridge()` 使用的默认 URL 一致。应用构建和 CI 可以执行只读校验：
+`initializeTaglibWasmBridge()` 使用的默认 URL 一致。部署应用前可以执行只读校验：
 
 ```console
 dart run dart_taglib:install_web_runtime --check

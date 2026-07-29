@@ -55,8 +55,8 @@ dart run dart_taglib:install_web_runtime
 
 The default destination is
 `web/assets/packages/dart_taglib/web_runtime`, which matches the URL used by
-`initializeTaglibWasmBridge()`. A read-only check is suitable for application
-builds and CI:
+`initializeTaglibWasmBridge()`. A read-only check can be run before deploying
+the application:
 
 ```console
 dart run dart_taglib:install_web_runtime --check
